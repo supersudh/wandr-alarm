@@ -11,7 +11,7 @@ export default class Alarm extends React.Component {
       <div>
         <li className="list-group-item">
         <span>
-          {this.props.alarm}
+          {this.props.recurring ? 'Everyday '+this.props.alarm.slice(-5) : this.props.alarm}
         </span>
         <span className="pull-xs-right" style={{bottom: '7px',position:'relative'}}>
           <button className="btn btn-danger" onClick={this.props.removeAlarm}>

@@ -34,7 +34,8 @@ export default class Alarms extends React.Component {
         <div key={i}>
           {i == 0 ? str : ''}
           <Alarm
-            alarm={t}
+            alarm={t.time}
+            recurring={t.recurring}
             removeAlarm={() => this.removeAlarm(i)} />
           <br />
         </div>
@@ -65,12 +66,12 @@ export default class Alarms extends React.Component {
     }
   }
 
-  createAlarm(time) {
+  createAlarm(time,recurring) {
     let activeAlarms = JSON.parse(window.localStorage.getItem("alarms"));
     if (activeAlarms == undefined) {
       activeAlarms = [];
     }
-    activeAlarms.push(time);
+    activeAlarms.push({time,recurring});
     this.localStorageOp(JSON.stringify(activeAlarms));
     this.setState({ activeAlarms, pendingSet: false });
   }
@@ -100,12 +101,13 @@ export default class Alarms extends React.Component {
     clearInterval(interval);
     interval = setInterval(() => {
       let alarmsArray = this.state.activeAlarms;
-      alarmsArray.forEach(alarm => {
-        if(alarm == moment().format('Do, MMMM YYYY HH:mm'))
+      alarmsArray.forEach((alarm,i) => {
+        if(alarm.time == moment().format('Do, MMMM YYYY HH:mm') && alarm.today !== new Date().getDay())
         {
-          alert(alarm);
+          alert(alarm.time);
           let activeAlarms = this.state.activeAlarms;
-          activeAlarms = this.state.activeAlarms.filter(t => t !== alarm);
+          activeAlarms[i].today = new Date().getDay();
+          activeAlarms = this.state.activeAlarms.filter(t => t.time !== alarm && t.recurring);
           this.localStorageOp(JSON.stringify(activeAlarms));
           this.setState({activeAlarms, pendingSet: false});
         }
