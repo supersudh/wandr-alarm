@@ -12,7 +12,9 @@ import App from './components/app.component';
 
 function render() {
   ReactDOM.render(
+    <MuiThemeProvider>
     <App />
+    </MuiThemeProvider>
     , document.querySelector('.container'));
 }
 

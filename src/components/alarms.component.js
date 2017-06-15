@@ -27,6 +27,14 @@ export default class Alarms extends React.Component {
     this.state = { activeAlarms, pendingSet: false };
   }
 
+  handleToggle(status,i) {
+    let activeAlarms = this.state.activeAlarms;
+    activeAlarms[i].active = status;
+    this.localStorageOp(JSON.stringify(activeAlarms));
+    this.setState({...this.state, activeAlarms});
+    
+  }
+
   renderAlarmDetails() {
     let str = <h2>Active Alarms</h2>;
     const alarms = this.state.activeAlarms.map((t, i) => {
@@ -34,8 +42,12 @@ export default class Alarms extends React.Component {
         <div key={i}>
           {i == 0 ? str : ''}
           <Alarm
+            index={i}
             alarm={t.time}
             recurring={t.recurring}
+            days={t.days}
+            active={t.active}
+            handleToggle={this.handleToggle.bind(this)}
             removeAlarm={() => this.removeAlarm(i)} />
           <br />
         </div>
@@ -60,18 +72,17 @@ export default class Alarms extends React.Component {
       this.setState({ pendingSet: true });
       return (
         <AddAlarm
-          addAlarm={this.createAlarm}
-          cancel={() => { this.setState({ pendingSet: false }) } } />
+          addAlarm={this.createAlarm}/>
       )
     }
   }
 
-  createAlarm(time,recurring) {
+  createAlarm(time,recurring, days, message) {
     let activeAlarms = JSON.parse(window.localStorage.getItem("alarms"));
     if (activeAlarms == undefined) {
       activeAlarms = [];
     }
-    activeAlarms.push({time,recurring});
+    activeAlarms.push({time,recurring, days, message, active: true});
     this.localStorageOp(JSON.stringify(activeAlarms));
     this.setState({ activeAlarms, pendingSet: false });
   }
@@ -102,12 +113,16 @@ export default class Alarms extends React.Component {
     interval = setInterval(() => {
       let alarmsArray = this.state.activeAlarms;
       alarmsArray.forEach((alarm,i) => {
-        if(alarm.time == moment().format('Do, MMMM YYYY HH:mm') && alarm.today !== new Date().getDay())
+        if(alarm.time == moment().format('h:mm a') && alarm.active && alarm.today !== new Date().getDay())
         {
-          alert(alarm.time);
+          alert(alarm.message);
           let activeAlarms = this.state.activeAlarms;
-          activeAlarms[i].today = new Date().getDay();
-          activeAlarms = this.state.activeAlarms.filter(t => t.time !== alarm && t.recurring);
+          if(!alarm.recurring) {
+            activeAlarms[i].active = false;
+          }
+          else {
+            activeAlarms[i].today = new Date().getDay();
+          }
           this.localStorageOp(JSON.stringify(activeAlarms));
           this.setState({activeAlarms, pendingSet: false});
         }
